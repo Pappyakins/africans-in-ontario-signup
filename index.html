@@ -20,9 +20,11 @@
   .card p.hint { margin:0 0 14px; font-size:.88rem; color:#666; }
   label { display:block; font-weight:600; font-size:.92rem; margin:14px 0 6px; color:var(--green); }
   label:first-of-type { margin-top:0; }
-  input[type=text], input[type=date] { width:100%; padding:13px 14px; font-size:1.05rem;
-      border:2px solid #ddd; border-radius:10px; font-family:inherit; }
-  input:focus { border-color:var(--green); outline:none; }
+  input[type=text], select { width:100%; padding:13px 14px; font-size:1.05rem;
+      border:2px solid #ddd; border-radius:10px; font-family:inherit; background:#fff; }
+  input:focus, select:focus { border-color:var(--green); outline:none; }
+  .bdayrow { display:flex; gap:10px; }
+  .bdayrow select { flex:1; min-width:0; }
   .btn { display:block; width:100%; padding:15px; margin-top:16px; border:none; border-radius:10px;
          background:var(--green); color:#fff; font-size:1.05rem; font-weight:700; cursor:pointer; }
   .btn.gold { background:#16161a; color:#fff; }
@@ -53,8 +55,28 @@
     <p class="hint">Fill this in once — we'll celebrate you every year! 🎉</p>
     <label for="name">Full name</label>
     <input type="text" id="name" placeholder="e.g. Pappy Akins" autocomplete="name">
-    <label for="bday">Birthday</label>
-    <input type="date" id="bday">
+    <label>Birthday <span style="font-weight:400;color:#888">(month and day only)</span></label>
+    <div class="bdayrow">
+      <select id="bmonth" aria-label="Birth month">
+        <option value="">Month</option>
+        <option value="1">January</option><option value="2">February</option>
+        <option value="3">March</option><option value="4">April</option>
+        <option value="5">May</option><option value="6">June</option>
+        <option value="7">July</option><option value="8">August</option>
+        <option value="9">September</option><option value="10">October</option>
+        <option value="11">November</option><option value="12">December</option>
+      </select>
+      <select id="bday" aria-label="Birth day">
+        <option value="">Day</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+        <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+        <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
+        <option>16</option><option>17</option><option>18</option><option>19</option><option>20</option>
+        <option>21</option><option>22</option><option>23</option><option>24</option><option>25</option>
+        <option>26</option><option>27</option><option>28</option><option>29</option><option>30</option>
+        <option>31</option>
+      </select>
+    </div>
     <label for="city">City <span style="font-weight:400;color:#888">(optional)</span></label>
     <input type="text" id="city" placeholder="e.g. Toronto" autocomplete="address-level2">
     <label>Your photo</label>
@@ -114,11 +136,15 @@ document.getElementById("sendBtn").onclick = async () => {
   const btn = document.getElementById("sendBtn"), err = document.getElementById("err");
   err.style.display = "none";
   const name = document.getElementById("name").value.trim();
-  const bday = document.getElementById("bday").value;   // YYYY-MM-DD
+  const bmonth = parseInt(document.getElementById("bmonth").value, 10);
+  const bday = parseInt(document.getElementById("bday").value, 10);
   const city = document.getElementById("city").value.trim();
   if (name.length < 2) { err.textContent = "Please enter your full name."; err.style.display = "block"; return; }
-  const m = bday.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) { err.textContent = "Please pick your birthday."; err.style.display = "block"; return; }
+  const dim = [0,31,29,31,30,31,30,31,31,30,31,30,31];
+  if (!(bmonth >= 1 && bmonth <= 12 && bday >= 1 && bday <= dim[bmonth])) {
+    err.textContent = "Please pick your birthday (month and day).";
+    err.style.display = "block"; return;
+  }
   if (!photoDataUrl) { err.textContent = "Please choose a photo."; err.style.display = "block"; return; }
   btn.disabled = true; btn.textContent = "Submitting…";
   try {
@@ -128,8 +154,8 @@ document.getElementById("sendBtn").onclick = async () => {
       body: JSON.stringify({
         group: "africans-in-ontario",
         name: name,
-        month: parseInt(m[2], 10),
-        day: parseInt(m[3], 10),
+        month: bmonth,
+        day: bday,
         city: city,
         photo: photoDataUrl
       })
